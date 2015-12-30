@@ -25,6 +25,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="package.json" />
+    <Content Include="vincent_startup.sh" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Navigation\" />
