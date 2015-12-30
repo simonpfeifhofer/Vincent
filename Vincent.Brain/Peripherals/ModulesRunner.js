@@ -77,7 +77,7 @@ var ModulesRunner = (function () {
                 });
                 setInterval(function () {
                     _this.TriggerAllSensorsRead();
-                }, 500);
+                }, 100);
             }
         });
     };

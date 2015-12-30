@@ -99,7 +99,7 @@ class ModulesRunner {
                         this.TriggerAllSensorsRead();
                     }
                     ,
-                    500);
+                    100);
 
             }
         });
