@@ -1,0 +1,17 @@
+{
+  "name": "vincent.brain",
+  "version": "1.0.0",
+  "description": "Brain of Vincent",
+  "main": "app.js",
+  "dependencies": {
+    "mock-require": "^1.2.1",
+    "noble": "^1.2.1",
+    "serialport": "^2.0.5"
+  },
+  "devDependencies": { },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Simon Pfeifhofer",
+  "license": "MIT"
+}
