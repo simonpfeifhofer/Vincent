@@ -3,6 +3,13 @@ import IModule = require("./IModule");
 import ISensorModule = require("./ISensorModule");
 import IActorModule = require("./IActorModule");
 
+enum ReadState {
+    Unknown = 1,
+    PreStart = 2,
+    Start = 3,
+    ModuleTypeDetected = 4,
+}
+
 class ModulesRunner {
 
     private _serialPort: any;
@@ -26,6 +33,23 @@ class ModulesRunner {
         return this._sensorModules[index];
     }
 
+    private ResetAll() {
+
+        var buffer = new Buffer(4);
+        buffer[0] = 0xff;
+        buffer[1] = 0x55;
+        buffer[2] = 0x04;
+        buffer[3] = 0x00;
+        this._serialPort.write(buffer, (error, result) => {
+            if (error != null) {
+                console.error("Error occurred: %s", error);
+                return;
+            }
+            console.log("Reset result: %s", result);
+        });
+
+    }
+
     private Write(mod: IModule, descriptor: number) {
 
         var buffer = new Buffer(mod.GetCurrentData() == null ? 6 : 10);
@@ -38,14 +62,14 @@ class ModulesRunner {
         if (mod.GetCurrentData() != null) {
             buffer.writeFloatLE(mod.GetCurrentData(), 6);
         }
-        console.log("Module %d on port/slot %d writes data", mod.GetModuleKindIdentifier(), mod.GetPortSlot());
-        console.log("Raw data write: " + buffer.toString('hex'));
+        //console.log("Module %d on port/slot %d writes data", mod.GetModuleKindIdentifier(), mod.GetPortSlot());
+        //console.log("Raw data write: " + buffer.toString('hex'));
         this._serialPort.write(buffer, (error, result) => {
             if (error != null) {
                 console.error("Error occurred: %s", error);
                 return;
             }
-            console.log("%s actor result: %s", mod.GetModuleKindIdentifier().toString(), result);
+            //console.log("%s actor result: %s", mod.GetModuleKindIdentifier().toString(), result);
         });
     }
 
@@ -56,37 +80,67 @@ class ModulesRunner {
                 if (error) {
                     console.log('failed to open: ' + error);
                 } else {
-                    console.log("connection established ...");
-                    var preStart = false;
-                    var start = false;
-                    var index = 0;
-                    var valuebuffer = new Buffer(4);
+
+                    console.log("connection established");
+                    this.ResetAll();
+                    console.log("Vincent.Peripheral resetted");
+
+                    var readState: ReadState;
                     var modulesIndex = -1;
+
+                    var reset = () => {
+                        readState = ReadState.Unknown;
+                        modulesIndex = -1;
+                    };
+
+                    reset();
+
+                    var valueIndex = 0;
+                    var valuebuffer = new Buffer(4);
+
                     this._serialPort.on('data', (data) => {
 
-                        console.log("Raw data read: " + data.toString('hex'));
+                        //console.log("Raw data read: " + data.toString('hex'));
                         for (var i = 0; i < data.length; i++) {
 
-                            if (data[i] == 0xFF) {
-                                preStart = true;
+                            if (readState == ReadState.Unknown && data[i] == 0xFF) {
+                                readState = ReadState.PreStart;
                             }
-                            else if (preStart && data[i] == 0x55) {
-                                start = true;
+                            else if (readState == ReadState.PreStart && data[i] == 0x55) {
+                                readState = ReadState.Start;
                                 valuebuffer.fill(0);
                             }
-                            else if (start && preStart && data[i] == ModuleType.SENSOR) {
-                                index = 0;
+                            else if (readState == ReadState.Start && data[i] == ModuleType.SENSOR) {
+                                readState = ReadState.ModuleTypeDetected;
+                                valueIndex = 0;
                                 modulesIndex++;
                             }
-                            else if (modulesIndex >= 0) {
-                                valuebuffer[index] = data[i];
-                                index++;
-                                if (index == 4) {
-                                    this.GetSensorModule(modulesIndex).ApplyValue(valuebuffer.readFloatLE(0));
-                                    preStart = false;
-                                    start = false;
-                                    modulesIndex = -1;
+                            else if (readState == ReadState.ModuleTypeDetected) {
+
+                                valuebuffer[valueIndex] = data[i];
+
+                                if (valueIndex == 1 &&
+                                    valuebuffer[0] == 0x0d &&
+                                    valuebuffer[1] == 0x0a) {
+                                    reset();
                                 }
+                                else if (valueIndex > 2) {
+
+                                    var mod: ISensorModule = this.GetSensorModule(modulesIndex);
+                                    if (mod == null) {
+                                        throw new Error("Module at index %d not in list!");
+                                    }
+                                    console.log("Raw data read: " + data.toString('hex'));
+                                    console.log("Module %d apply value: %f", mod.GetModuleKindIdentifier(), valuebuffer.readFloatLE(0));
+                                    mod.ApplyValue(valuebuffer.readFloatLE(0));
+                                    reset();
+                                }
+
+                                valueIndex++;
+
+                            }
+                            else {
+                                reset();
                             }
 
                         }
@@ -99,7 +153,7 @@ class ModulesRunner {
                         this.TriggerAllSensorsRead();
                     }
                     ,
-                    100);
+                    200);
 
             }
         });

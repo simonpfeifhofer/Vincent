@@ -1,8 +1,5 @@
 ﻿#!/bin/sh
-# kFreeBSD do not accept scripts as interpreters, using #!/bin/sh and sourcing.
-if [ true != "$INIT_D_SCRIPT_SOURCED" ] ; then
-    set "$0" "$@"; INIT_D_SCRIPT_SOURCED=true . /lib/init/init-d-script
-fi
+
 ### BEGIN INIT INFO
 # Provides:          vincent_startup.sh
 # Required-Start:    $sudo $remote_fs $syslog
@@ -15,5 +12,5 @@ fi
 
 # Author: Simon Pfeifhofer <simon.pfeifhofer@gmail.com>
 
-cd /home/pi/Vincent
+cd /home/pi/Vincent/
 node app.js

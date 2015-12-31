@@ -25,6 +25,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="package.json" />
+    <Content Include="Readme.txt" />
     <Content Include="vincent_startup.sh" />
   </ItemGroup>
   <ItemGroup>

@@ -84,4 +84,7 @@
   <ItemGroup>
     <None Include="Vincent.Peripheral.ino" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="Readme.txt" />
+  </ItemGroup>
 </Project>
