@@ -5,12 +5,11 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = new __();
 };
 var ModuleBase = require("./ModuleBase");
-var ModuleType = require("./ModuleType");
 var ModuleKindIdentifier = require("./ModuleKindIdentifier");
 var DisplayModule = (function (_super) {
     __extends(DisplayModule, _super);
     function DisplayModule(port_slot) {
-        _super.call(this, ModuleType.ACTOR, ModuleKindIdentifier.DISPLAY, port_slot);
+        _super.call(this, ModuleKindIdentifier.DISPLAY, port_slot);
     }
     DisplayModule.prototype.GetModuleKindIdentifier = function () {
         return ModuleKindIdentifier.DISPLAY;

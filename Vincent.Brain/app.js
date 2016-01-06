@@ -83,8 +83,8 @@ ultrasonicModule.RegisterCallback(function (value) {
     // prepare
     displayModule.SetValue(value);
     if(value < 20 || value > 100){
-        motorLeftModule.SetValue((value < 20 ? -1 : 1 ) * 80);
-        motorRightModule.SetValue((value < 20 ? -1 : 1) * 80);
+        motorLeftModule.SetValue((value < 20 ? -1 : 1 ) * 100);
+        motorRightModule.SetValue((value < 20 ? -1 : 1) * 100);
     }
     
     // run

@@ -44,7 +44,6 @@
     <TypeScriptCompile Include="Peripherals\ModuleBase.ts" />
     <TypeScriptCompile Include="Peripherals\ModuleKindIdentifier.ts" />
     <TypeScriptCompile Include="Peripherals\ModulesRunner.ts" />
-    <TypeScriptCompile Include="Peripherals\ModuleType.ts" />
     <TypeScriptCompile Include="Peripherals\MotorModule.ts" />
     <TypeScriptCompile Include="Peripherals\UltrasonicModule.ts" />
     <Content Include="Peripherals\index.js" />

@@ -4,13 +4,12 @@ var __extends = (this && this.__extends) || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-var ModuleType = require("./ModuleType");
 var ModuleKindIdentifier = require("./ModuleKindIdentifier");
 var ModuleBase = require("./ModuleBase");
 var MotorModule = (function (_super) {
     __extends(MotorModule, _super);
     function MotorModule(port_slot) {
-        _super.call(this, ModuleType.ACTOR, ModuleKindIdentifier.MOTOR, port_slot);
+        _super.call(this, ModuleKindIdentifier.MOTOR, port_slot);
     }
     MotorModule.prototype.GetModuleKindIdentifier = function () {
         return ModuleKindIdentifier.MOTOR;

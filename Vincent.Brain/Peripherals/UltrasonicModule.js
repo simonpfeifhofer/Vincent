@@ -4,13 +4,12 @@ var __extends = (this && this.__extends) || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-var ModuleType = require("./ModuleType");
 var ModuleKindIdentifier = require("./ModuleKindIdentifier");
 var ModuleBase = require("./ModuleBase");
 var UltrasonicModule = (function (_super) {
     __extends(UltrasonicModule, _super);
     function UltrasonicModule(port_slot) {
-        _super.call(this, ModuleType.SENSOR, ModuleKindIdentifier.ULTRASONIC, port_slot);
+        _super.call(this, ModuleKindIdentifier.ULTRASONIC, port_slot);
         this._callbacks = new Array();
     }
     UltrasonicModule.prototype.GetModuleKindIdentifier = function () {

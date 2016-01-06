@@ -341,6 +341,7 @@ void readSensor(int device,int port,int slot,int pin){
   float value=0.0;
   switch(device){
    case  ULTRASONIC_SENSOR:{
+	 writeSerial(ULTRASONIC_SENSOR);
      if(us.getPort()!=port){
        us.reset(port);
      }
@@ -349,6 +350,7 @@ void readSensor(int device,int port,int slot,int pin){
    }
    break;
    case  TEMPERATURE_SENSOR:{
+	 writeSerial(TEMPERATURE_SENSOR);
      if(ts.getPort()!=port||ts.getSlot()!=slot){
        ts.reset(port,slot);
      }
@@ -357,6 +359,7 @@ void readSensor(int device,int port,int slot,int pin){
    }
    break;
    case  LIGHT_SENSOR:{
+	 writeSerial(LIGHT_SENSOR);
      if(generalDevice.getPort()!=port){
        generalDevice.reset(port);
      }
@@ -365,6 +368,7 @@ void readSensor(int device,int port,int slot,int pin){
    }
    break;
    case  POTENTIONMETER:{
+	 writeSerial(POTENTIONMETER);
      if(generalDevice.getPort()!=port){
        generalDevice.reset(port);
      }
@@ -373,6 +377,7 @@ void readSensor(int device,int port,int slot,int pin){
    }
    break;
    case  JOYSTICK:{
+	 writeSerial(JOYSTICK);
      if(generalDevice.getPort()!=port){
        generalDevice.reset(port);
      }
@@ -383,6 +388,7 @@ void readSensor(int device,int port,int slot,int pin){
    }
    break;
    case  INFRARED:{
+	 writeSerial(INFRARED);
      if(ir.getPort()!=port){
        ir.reset(port);
      }
@@ -390,6 +396,7 @@ void readSensor(int device,int port,int slot,int pin){
    }
    break;
    case  LINEFOLLOWER:{
+	 writeSerial(LINEFOLLOWER);
      if(generalDevice.getPort()!=port){
        generalDevice.reset(port);
      }
@@ -398,6 +405,7 @@ void readSensor(int device,int port,int slot,int pin){
    }
    break;
    case  GYRO:{
+	   writeSerial(GYRO);
        MeGyro::getMotion6();
        value = MeGyro::getAngleX();
        sendValue(value);
@@ -408,15 +416,18 @@ void readSensor(int device,int port,int slot,int pin){
    }
    break;
    case  VERSION:{
+	 writeSerial(VERSION);
      sendValue(mVersion);
    }
    break;
    case  DIGITAL_INPUT:{
+	 writeSerial(VERSION);
      pinMode(pin,INPUT);
      sendValue(digitalRead(pin));
    }
    break;
    case  ANALOG_INPUT:{
+	 writeSerial(VERSION);
      pinMode(pin,INPUT);
      sendValue(analogRead(pin));
    }

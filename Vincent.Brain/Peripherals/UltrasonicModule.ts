@@ -1,5 +1,4 @@
-﻿import ModuleType = require("./ModuleType");
-import ModuleKindIdentifier = require("./ModuleKindIdentifier");
+﻿import ModuleKindIdentifier = require("./ModuleKindIdentifier");
 import ISensorModule = require("./ISensorModule");
 import ModuleBase = require("./ModuleBase");
 
@@ -9,7 +8,7 @@ class UltrasonicModule extends ModuleBase implements ISensorModule{
     private _callbacks: Array<any> = new Array<any>();
 
     constructor(port_slot: number) {
-        super(ModuleType.SENSOR, ModuleKindIdentifier.ULTRASONIC, port_slot);
+        super(ModuleKindIdentifier.ULTRASONIC, port_slot);
     }
 
     GetModuleKindIdentifier(): ModuleKindIdentifier {
