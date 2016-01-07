@@ -1,9 +1,6 @@
-﻿import MotorModule = require("../Peripherals/MotorModule");
-
-interface INavigator {
+﻿interface INavigator {
 
     Start();
-    Navigate();
     Stop();
 
 }

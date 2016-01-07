@@ -15,7 +15,7 @@ var ModulesRunner = (function () {
         return this._sensorModules.length;
     };
     ModulesRunner.prototype.GetSensorModule = function (moduleKindIdentifier) {
-        for (var i in this._sensorModules) {
+        for (var i = 0; i < this._sensorModules.length; i++) {
             if (this._sensorModules[i].GetModuleKindIdentifier() == moduleKindIdentifier) {
                 return this._sensorModules[i];
             }
@@ -36,7 +36,7 @@ var ModulesRunner = (function () {
             console.log("Reset result: %s", result);
         });
     };
-    ModulesRunner.prototype.Read = function () {
+    ModulesRunner.prototype.Read = function (connectionSucceeded) {
         var _this = this;
         this._serialPort.open(function (error) {
             if (error) {
@@ -93,22 +93,21 @@ var ModulesRunner = (function () {
                         }
                     }
                 });
-                setInterval(function () {
-                    _this.TriggerAllSensorsRead();
-                }, 500);
+                _this.TriggerAllSensorsRead();
+                connectionSucceeded();
             }
         });
     };
-    ModulesRunner.prototype.Start = function () {
-        this.Read();
+    ModulesRunner.prototype.Start = function (startSucceeded) {
+        this.Read(startSucceeded);
     };
     ModulesRunner.prototype.TriggerAllSensorsRead = function () {
         var buffer = new Buffer(4 + 2 * this.GetSensorModulesCount());
         buffer[0] = 0xff;
         buffer[1] = 0x55;
         buffer[2] = 0x01;
-        buffer[3] = 6;
-        for (var i in this._sensorModules) {
+        buffer[3] = this.GetSensorModulesCount() * 2;
+        for (var i = 0; i < this._sensorModules.length; i++) {
             var m = this._sensorModules[i];
             buffer[4 + i * 2] = m.GetModuleKindIdentifier(); //0x09; // module  
             buffer[4 + (i * 2) + 1] = m.GetPortSlot(); //0x61; // port + slot

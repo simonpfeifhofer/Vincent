@@ -22,6 +22,8 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
   <ItemGroup>
     <Compile Include="app.js" />
+    <Compile Include="Navigation\index.js" />
+    <Compile Include="TaskRunner\index.js" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="package.json" />
@@ -30,6 +32,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Navigation\" />
+    <Folder Include="TaskRunner\" />
     <Folder Include="Peripherals\" />
     <Folder Include="Definitions\" />
   </ItemGroup>
@@ -47,6 +50,10 @@
     <TypeScriptCompile Include="Peripherals\MotorModule.ts" />
     <TypeScriptCompile Include="Peripherals\UltrasonicModule.ts" />
     <Content Include="Peripherals\index.js" />
+    <TypeScriptCompile Include="TaskRunner\IExecutable.ts" />
+    <TypeScriptCompile Include="TaskRunner\LoopTask.ts" />
+    <TypeScriptCompile Include="TaskRunner\SequentialTask.ts" />
+    <TypeScriptCompile Include="TaskRunner\Task.ts" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <!--Do not delete the following Import Project.  While this appears to do nothing it is a marker for setting TypeScript properties before our import that depends on them.-->

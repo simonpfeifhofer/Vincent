@@ -1,5 +1,6 @@
 ﻿
 var peripherals = require("./Peripherals");
+var navigation = require("./Navigation");
 
 if (process.argv[2] === 'development') {
     
@@ -82,20 +83,35 @@ ultrasonicModule.RegisterCallback(function (value) {
     
     // prepare
     displayModule.SetValue(value);
-    if(value < 20 || value > 100){
+    /*
+    if (value < 20 || value > 100) {
         motorLeftModule.SetValue((value < 20 ? -1 : 1 ) * 100);
         motorRightModule.SetValue((value < 20 ? -1 : 1) * 100);
     }
+    */
     
     // run
     runner.RunActor(displayModule);
+    /*
     runner.RunActor(motorLeftModule);
     runner.RunActor(motorRightModule);
+    */
     
 });
 
+var navigator = new navigation.StayInZoneNavigator(
+    runner, 
+    motorLeftModule, 
+    motorRightModule, 
+    ultrasonicModule
+);
+
 // start all
-runner.Start();
+runner.Start(
+    function () {
+        navigator.Start();
+    }
+);
 
 process.on('SIGINT', function () {
     //noble.stopScanning();

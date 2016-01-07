@@ -26,7 +26,7 @@ class ModulesRunner {
     }
 
     public GetSensorModule(moduleKindIdentifier: ModuleKindIdentifier): ISensorModule{
-        for (var i in this._sensorModules) {
+        for (var i = 0; i < this._sensorModules.length; i++) {
             if (this._sensorModules[i].GetModuleKindIdentifier() == moduleKindIdentifier) {
                 return this._sensorModules[i];
             }
@@ -51,7 +51,7 @@ class ModulesRunner {
 
     }
 
-    private Read() {
+    private Read(connectionSucceeded: () => void) {
 
         this._serialPort.open(
             (error) => {
@@ -124,31 +124,27 @@ class ModulesRunner {
                     }
                 );
 
-                setInterval(
-                    () => {
-                        this.TriggerAllSensorsRead();
-                    }
-                    ,
-                    500);
+                this.TriggerAllSensorsRead();
+                connectionSucceeded();
 
             }
         });
 
     }
 
-    public Start() {
-        this.Read();
+    public Start(startSucceeded : () => void) {
+        this.Read(startSucceeded);
     }
 
-    private TriggerAllSensorsRead() {
+    public TriggerAllSensorsRead() {
         
         var buffer = new Buffer(4 + 2*this.GetSensorModulesCount());
         buffer[0] = 0xff;
         buffer[1] = 0x55;
         buffer[2] = 0x01;
-        buffer[3] = 6;
+        buffer[3] = this.GetSensorModulesCount()*2;
         
-        for (var i in this._sensorModules) {
+        for (var i = 0; i < this._sensorModules.length; i++) {
             var m = this._sensorModules[i];
             buffer[4 + i*2] = m.GetModuleKindIdentifier();//0x09; // module  
             buffer[4 + (i*2) + 1] = m.GetPortSlot();//0x61; // port + slot

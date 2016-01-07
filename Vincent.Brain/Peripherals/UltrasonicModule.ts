@@ -17,7 +17,7 @@ class UltrasonicModule extends ModuleBase implements ISensorModule{
 
     ApplyValue(value: any) {
         this._value = value;
-        for (var i in this._callbacks) {
+        for (var i = 0; i < this._callbacks.length; i++) {
             this._callbacks[i](value);
         }
     }
