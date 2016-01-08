@@ -10,15 +10,21 @@ import LoopTask = require("../TaskRunner/LoopTask");
 class StayInZoneNavigator implements INavigator {
 
     private _generalWaitDelay: number = 2000;
-    private _turnSteps: number = 10;
+    private _singleTurnWaitDelay: number = 1000;
+    private _singleForwardWaitDelay: number = 1500;
+    private _turnSteps: number = 4;
+    private _forwardStepsLimit: number = 5;
 
     private _runner: ModulesRunner;
     private _motorLeft: MotorModule;
     private _motorRight: MotorModule;
     private _ultrasonic: UltrasonicModule;
-    private _task: SequentialTask;
+    private _mainTask: LoopTask;
 
     private _distanceMeasures: Array<number>;
+
+    private _currentRandomForwardSteps: number = 0;
+    private _maxRandomForwardSteps: number = 0;
 
     constructor(runner: ModulesRunner, motorLeft: MotorModule, motorRight: MotorModule, ultrasonic: UltrasonicModule) {
         this._runner = runner;
@@ -33,9 +39,8 @@ class StayInZoneNavigator implements INavigator {
                 this.CreateTriggerSensorReadTask(),
                 this.CreateWaitTask(),
                 this.CreateMeasureTask(),
-                this.CreateWaitTask(),
-                this.CreateStartTurningTask(),
-                this.CreateWaitTask(),
+                this.CreateStartTurningLeftTask(),
+                this.CreateSingleTurnStepWaitTask(),
                 this.CreateStopMovementTask(),
                 this.CreateWaitTask()
             ]
@@ -44,32 +49,108 @@ class StayInZoneNavigator implements INavigator {
             [
                 this.CreateCleanupMeasureTask(),
                 new LoopTask(
-                    () => { return this._distanceMeasures.length < this._turnSteps },
+                    () => this._distanceMeasures.length < this._turnSteps,
                     turnAndMeasureDistanceLoop
-                    )
+                )
+            ]
+        );
+
+        var turnToMaxDistanceLoop: SequentialTask = new SequentialTask(
+            [
+                this.CreateRemoveLastDistanceTask(),
+                this.CreateStartTurningRightTask(),
+                this.CreateSingleTurnStepWaitTask(),
+                this.CreateStopMovementTask(),
+                this.CreateWaitTask()
             ]
         );
 
         var turnToMaxDistance: SequentialTask = new SequentialTask(
             [
-
+                this.CreateStartTurningRightTask(),
+                this.CreateSingleTurnStepWaitTask(),
+                this.CreateStopMovementTask(),
+                this.CreateWaitTask(),
+                new LoopTask(
+                    () => 
+                        this._distanceMeasures.length > 0 &&
+                        this._distanceMeasures.indexOf(
+                            Math.max.apply(
+                                Math,
+                                this._distanceMeasures
+                            )
+                        ) !=
+                        (this._distanceMeasures.length - 1)
+                    ,
+                    turnToMaxDistanceLoop
+                    )
             ]
             );
+
+        var moveForwardLoop: SequentialTask = new SequentialTask(
+            [
+                this.CreateStartMovingForwardTask(),
+                this.CreateForwardWaitTask(),
+                this.CreateStopMovementTask(),
+                this.CreateWaitTask(),
+                this.CreateTriggerSensorReadTask(),
+                this.CreateWaitTask()
+            ]
+        );
 
         var moveForward: SequentialTask = new SequentialTask(
             [
-
+                this.CreateGenerateMaxRandomForwardStepsTask(),
+                this.CreateTriggerSensorReadTask(),
+                this.CreateWaitTask(),
+                new LoopTask(
+                    () =>
+                        this._currentRandomForwardSteps < this._maxRandomForwardSteps &&
+                        this._ultrasonic.GetValue() > 40,
+                    moveForwardLoop
+                )
             ]
             );
 
-        this._task = new SequentialTask(
-            [
-                this.CreateWaitTask(),
-                turnAndMeasureDistance,
-                //turnToMaxDistance,
-                //moveForward
-            ]
-        );
+        this._mainTask =
+            new LoopTask(
+                () => true,
+                new SequentialTask(
+                    [
+                        this.CreateWaitTask(),
+                        turnAndMeasureDistance,
+                        turnToMaxDistance,
+                        moveForward
+                    ]
+                )
+            );
+
+    }
+
+    private CreateGenerateMaxRandomForwardStepsTask(): Task {
+
+        var t = new Task("GenerateMaxRandomForwardSteps");
+        t.PreDelay = 0;
+        t.PostDelay = 0;
+        t.Function = (...params: any[]) => {
+            this._maxRandomForwardSteps = Math.round(Math.random() * this._forwardStepsLimit);
+            this._currentRandomForwardSteps = 0;
+            return [];
+        };
+        return t;
+
+    }
+
+    private CreateRemoveLastDistanceTask(): Task {
+
+        var t = new Task("RemoveLastDistance");
+        t.PreDelay = 0;
+        t.PostDelay = 0;
+        t.Function = (...params: any[]) => {
+            this._distanceMeasures.pop();
+            return [];
+        };
+        return t;
 
     }
 
@@ -112,13 +193,39 @@ class StayInZoneNavigator implements INavigator {
 
     }
 
-    private CreateStartTurningTask(): Task {
+    private CreateStartTurningLeftTask(): Task {
 
-        var t = new Task("StartTurning");
+        var t = new Task("StartTurningLeft");
         t.PreDelay = 0;
         t.PostDelay = 0;
         t.Function = (...params: any[]) => {
-            this.StartTurning();
+            this.StartTurningLeft();
+            return [];
+        };
+        return t;
+
+    }
+
+    private CreateStartTurningRightTask(): Task {
+
+        var t = new Task("StartTurningRight");
+        t.PreDelay = 0;
+        t.PostDelay = 0;
+        t.Function = (...params: any[]) => {
+            this.StartTurningRight();
+            return [];
+        };
+        return t;
+
+    }
+
+    private CreateStartMovingForwardTask(): Task {
+
+        var t = new Task("StartMovingForward");
+        t.PreDelay = 0;
+        t.PostDelay = 0;
+        t.Function = (...params: any[]) => {
+            this.StartMovingForward();
             return [];
         };
         return t;
@@ -129,6 +236,30 @@ class StayInZoneNavigator implements INavigator {
 
         var t = new Task("Wait");
         t.PreDelay = this._generalWaitDelay;
+        t.PostDelay = 0;
+        t.Function = (...params: any[]) => {
+            return [];
+        };
+        return t;
+
+    }
+
+    private CreateForwardWaitTask() {
+
+        var t = new Task("ForwardWait");
+        t.PreDelay = this._singleForwardWaitDelay;
+        t.PostDelay = 0;
+        t.Function = (...params: any[]) => {
+            return [];
+        };
+        return t;
+
+    }
+
+    private CreateSingleTurnStepWaitTask() {
+
+        var t = new Task("Wait");
+        t.PreDelay = this._singleTurnWaitDelay;
         t.PostDelay = 0;
         t.Function = (...params: any[]) => {
             return [];
@@ -161,8 +292,16 @@ class StayInZoneNavigator implements INavigator {
         this.Move(0, 0);
     }
 
-    private StartTurning() {
-        this.Move(-100, 100);
+    private StartTurningLeft() {
+        this.Move(-150, 150);
+    }
+
+    private StartTurningRight() {
+        this.Move(150, -150);
+    }
+
+    private StartMovingForward() {
+        this.Move(100, 100);
     }
 
     private GetMin(distances: Array<number>) {
@@ -183,7 +322,7 @@ class StayInZoneNavigator implements INavigator {
 
     public Start() {
         console.log("Start navigation task");
-        this._task.Execute();
+        this._mainTask.Execute();
     }
 
     public Stop() {
