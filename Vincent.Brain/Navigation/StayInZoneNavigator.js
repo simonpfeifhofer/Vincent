@@ -5,10 +5,12 @@ var StayInZoneNavigator = (function () {
     function StayInZoneNavigator(runner, motorLeft, motorRight, ultrasonic) {
         var _this = this;
         this._generalWaitDelay = 2000;
-        this._singleTurnWaitDelay = 1000;
+        this._singleTurnWaitDelay = 800;
         this._singleForwardWaitDelay = 1500;
-        this._turnSteps = 4;
-        this._forwardStepsLimit = 5;
+        this._turnSteps = 6;
+        this._wallLimitInCm = 40;
+        this._forwardStepsLimit = 10;
+        this._motorAlternationDecision = false;
         this._currentRandomForwardSteps = 0;
         this._maxRandomForwardSteps = 0;
         this._runner = runner;
@@ -17,16 +19,19 @@ var StayInZoneNavigator = (function () {
         this._ultrasonic = ultrasonic;
         this._distanceMeasures = new Array();
         var turnAndMeasureDistanceLoop = new SequentialTask([
-            this.CreateTriggerSensorReadTask(),
-            this.CreateWaitTask(),
-            this.CreateMeasureTask(),
             this.CreateStartTurningLeftTask(),
             this.CreateSingleTurnStepWaitTask(),
             this.CreateStopMovementTask(),
-            this.CreateWaitTask()
+            this.CreateWaitTask(),
+            this.CreateTriggerSensorReadTask(),
+            this.CreateWaitTask(),
+            this.CreateMeasureTask()
         ]);
         var turnAndMeasureDistance = new SequentialTask([
             this.CreateCleanupMeasureTask(),
+            this.CreateTriggerSensorReadTask(),
+            this.CreateWaitTask(),
+            this.CreateMeasureTask(),
             new LoopTask(function () { return _this._distanceMeasures.length < _this._turnSteps; }, turnAndMeasureDistanceLoop)
         ]);
         var turnToMaxDistanceLoop = new SequentialTask([
@@ -37,17 +42,14 @@ var StayInZoneNavigator = (function () {
             this.CreateWaitTask()
         ]);
         var turnToMaxDistance = new SequentialTask([
-            this.CreateStartTurningRightTask(),
-            this.CreateSingleTurnStepWaitTask(),
-            this.CreateStopMovementTask(),
-            this.CreateWaitTask(),
             new LoopTask(function () {
                 return _this._distanceMeasures.length > 0 &&
-                    _this._distanceMeasures.indexOf(Math.max.apply(Math, _this._distanceMeasures)) !=
-                        (_this._distanceMeasures.length - 1);
+                    Math.max.apply(Math, _this._distanceMeasures) !=
+                        _this._distanceMeasures[_this._distanceMeasures.length - 1];
             }, turnToMaxDistanceLoop)
         ]);
         var moveForwardLoop = new SequentialTask([
+            this.CreateIncrementMoveForwardTask(),
             this.CreateStartMovingForwardTask(),
             this.CreateForwardWaitTask(),
             this.CreateStopMovementTask(),
@@ -60,8 +62,8 @@ var StayInZoneNavigator = (function () {
             this.CreateTriggerSensorReadTask(),
             this.CreateWaitTask(),
             new LoopTask(function () {
-                return _this._currentRandomForwardSteps < _this._maxRandomForwardSteps &&
-                    _this._ultrasonic.GetValue() > 40;
+                return _this._currentRandomForwardSteps <= _this._maxRandomForwardSteps &&
+                    _this._ultrasonic.GetValue() > _this._wallLimitInCm;
             }, moveForwardLoop)
         ]);
         this._mainTask =
@@ -72,6 +74,21 @@ var StayInZoneNavigator = (function () {
                 moveForward
             ]));
     }
+    StayInZoneNavigator.prototype.CreateIncrementMoveForwardTask = function () {
+        var _this = this;
+        var t = new Task("IncrementMoveForward");
+        t.PreDelay = 0;
+        t.PostDelay = 0;
+        t.Function = function () {
+            var params = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                params[_i - 0] = arguments[_i];
+            }
+            _this._currentRandomForwardSteps++;
+            return [];
+        };
+        return t;
+    };
     StayInZoneNavigator.prototype.CreateGenerateMaxRandomForwardStepsTask = function () {
         var _this = this;
         var t = new Task("GenerateMaxRandomForwardSteps");
@@ -250,8 +267,26 @@ var StayInZoneNavigator = (function () {
     StayInZoneNavigator.prototype.Move = function (left, right) {
         this._motorLeft.SetValue(left);
         this._motorRight.SetValue(right);
-        this._runner.RunActor(this._motorLeft);
-        this._runner.RunActor(this._motorRight);
+        if (right > left) {
+            this._runner.RunActor(this._motorLeft);
+            this._runner.RunActor(this._motorRight);
+        }
+        else if (left < right) {
+            this._runner.RunActor(this._motorRight);
+            this._runner.RunActor(this._motorLeft);
+        }
+        else if (this._motorAlternationDecision) {
+            this._runner.RunActor(this._motorRight);
+            this._runner.RunActor(this._motorLeft);
+        }
+        else if (!this._motorAlternationDecision) {
+            this._runner.RunActor(this._motorLeft);
+            this._runner.RunActor(this._motorRight);
+        }
+        var stopMovement = left == 0 && right == 0;
+        if (!stopMovement) {
+            this._motorAlternationDecision = !this._motorAlternationDecision;
+        }
     };
     StayInZoneNavigator.prototype.StopMovement = function () {
         this.Move(0, 0);
