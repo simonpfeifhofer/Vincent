@@ -4,7 +4,7 @@ var LoopTask = require("../TaskRunner/LoopTask");
 var StayInZoneNavigator = (function () {
     function StayInZoneNavigator(runner, motorLeft, motorRight, ultrasonic) {
         var _this = this;
-        this._generalWaitDelay = 2000;
+        this._generalWaitDelay = 1000;
         this._singleTurnWaitDelay = 800;
         this._singleForwardWaitDelay = 1500;
         this._turnSteps = 6;

@@ -9,7 +9,7 @@ import LoopTask = require("../TaskRunner/LoopTask");
 
 class StayInZoneNavigator implements INavigator {
 
-    private _generalWaitDelay: number = 2000;
+    private _generalWaitDelay: number = 1000;
     private _singleTurnWaitDelay: number = 800;
     private _singleForwardWaitDelay: number = 1500;
     private _turnSteps: number = 6;

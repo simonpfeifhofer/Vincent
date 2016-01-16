@@ -4,11 +4,13 @@
   "description": "Brain of Vincent",
   "main": "app.js",
   "dependencies": {
+    "express": "^4.13.3",
     "mock-require": "^1.2.1",
     "noble": "^1.2.1",
-    "serialport": "^2.0.5"
+    "serialport": "^2.0.5",
+    "socket.io": "^1.4.4"
   },
-  "devDependencies": { },
+  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

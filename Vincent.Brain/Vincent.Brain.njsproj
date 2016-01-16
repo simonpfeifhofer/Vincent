@@ -26,12 +26,14 @@
     <Compile Include="TaskRunner\index.js" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="index.html" />
     <Content Include="package.json" />
     <Content Include="Readme.txt" />
     <Content Include="vincent_startup.sh" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Navigation\" />
+    <Folder Include="stream\" />
     <Folder Include="TaskRunner\" />
     <Folder Include="Peripherals\" />
     <Folder Include="Definitions\" />
